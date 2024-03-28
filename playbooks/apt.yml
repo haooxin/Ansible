@@ -1,0 +1,8 @@
+- name: Update all Ubuntu servers
+  hosts: "*"
+  become: true
+  tasks:
+    - name: System updating
+      ansible.builtin.apt:
+        update_cache: true
+        upgrade: 'yes'
