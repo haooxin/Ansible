@@ -1,17 +1,28 @@
 #example_file
 ungrouped:
   hosts:
-    hostname:
+    hostname5:
       ansible_host: ip_address
+      ansible_user: username
+    hostname6:
+      ansible_host: ip_address
+      ansible_user: username
 
 group1:
+  vars:
+    ansible_user: username
   hosts:
       hostname1:
         ansible_host: ip_address
-        ansible_user: username
-
-group2:
-  hosts:
       hostname2:
         ansible_host: ip_address
-        ansible_user: username
+        
+
+group2:
+  vars:
+    ansible_user: username
+  hosts:
+      hostname3:
+        ansible_host: ip_address
+      hostname4:
+        ansible_host: ip_address
