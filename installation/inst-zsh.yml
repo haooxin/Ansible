@@ -1,0 +1,10 @@
+---
+- name: Install latest zsh on all hosts
+  hosts: "{{ my_hosts | d('all') }}"
+  tasks:
+    - name: Install zsh
+      ansible.builtin.apt:
+        name: zsh
+        state: present
+        update_cache: true
+      become: true
