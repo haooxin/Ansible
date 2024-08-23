@@ -1,0 +1,10 @@
+.vscode/**
+.DS_Store
+
+**/.envrc
+**/.env
+
+ssh_keys/**
+
+inventory.yaml
+inv_lab.yaml
