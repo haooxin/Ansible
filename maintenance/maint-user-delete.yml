@@ -1,0 +1,27 @@
+---
+- name: Remove user from Linux system and clean up sudoers
+  hosts: all
+  become: yes
+
+  vars_prompt:
+    - name: "username"
+      prompt: "Please enter the username to remove"
+      private: no
+
+  tasks:
+    - name: Remove the user
+      ansible.builtin.user:
+        name: "{{ username }}"
+        state: absent
+        remove: yes
+
+    - name: Remove user's entries from sudoers file
+      ansible.builtin.lineinfile:
+        path: /etc/sudoers
+        state: absent
+        regexp: '^{{ username }}\s+ALL=ALL:ALL\s+ALL$'
+
+    - name: Remove user's sudoers.d file if it exists
+      ansible.builtin.file:
+        path: "/etc/sudoers.d/{{ username }}"
+        state: absent

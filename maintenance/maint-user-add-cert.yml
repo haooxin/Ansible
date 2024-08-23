@@ -1,0 +1,93 @@
+---
+- name: Generate SSH key pair on Ansible control node
+  hosts: localhost
+  vars_prompt:
+    - name: "username"
+      prompt: "Enter the username to create"
+      private: no
+
+  tasks:
+    - name: Check if SSH key already exists
+      stat:
+        path: "/home/user/Ansible/ssh_keys/id_rsa_{{ username }}"
+      register: ssh_key
+
+    - name: Generate SSH key pair
+      command: ssh-keygen -t rsa -b 2048 -f /home/user/Ansible/ssh_keys/id_rsa_{{ username }} -q -N ""
+      when: not ssh_key.stat.exists
+
+    - name: Read the private key
+      slurp:
+        src: "/home/user/Ansible/ssh_keys/id_rsa_{{ username }}"
+      register: private_key
+
+    - name: Read the public key
+      slurp:
+        src: "/home/user/Ansible/ssh_keys/id_rsa_{{ username }}.pub"
+      register: public_key
+
+    - name: Set username as a fact
+      set_fact:
+        global_username: "{{ username }}"
+
+    - name: Set private key as fact
+      set_fact:
+        ssh_private_key: "{{ private_key.content | b64decode }}"
+
+    - name: Set public key as fact
+      set_fact:
+        ssh_public_key: "{{ public_key.content | b64decode }}"
+
+- name: Distribute SSH key and create user
+  hosts: "{{ my_hosts | d('all') }}"
+  become: yes
+  vars:
+    username: "{{ hostvars['localhost']['global_username'] }}"
+    ssh_private_key: "{{ hostvars['localhost']['ssh_private_key'] }}"
+    ssh_public_key: "{{ hostvars['localhost']['ssh_public_key'] }}"
+    ssh_key_file: "/home/{{ username }}/.ssh/id_rsa_{{ username }}"
+
+  tasks:
+    - name: Ensure the user exists
+      user:
+        name: "{{ username }}"
+        state: present
+        shell: /bin/bash
+
+    - name: Create .ssh directory
+      file:
+        path: "/home/{{ username }}/.ssh"
+        state: directory
+        owner: "{{ username }}"
+        group: "{{ username }}"
+        mode: '0700'
+
+    - name: Copy private key to server
+      copy:
+        content: "{{ ssh_private_key }}"
+        dest: "{{ ssh_key_file }}"
+        owner: "{{ username }}"
+        group: "{{ username }}"
+        mode: '0600'
+
+    - name: Copy public key to server
+      copy:
+        content: "{{ ssh_public_key }}"
+        dest: "{{ ssh_key_file }}.pub"
+        owner: "{{ username }}"
+        group: "{{ username }}"
+        mode: '0644'
+
+    - name: Copy public key to authorized_keys
+      copy:
+        content: "{{ ssh_public_key }}"
+        dest: "/home/{{ username }}/.ssh/authorized_keys"
+        owner: "{{ username }}"
+        group: "{{ username }}"
+        mode: '0644'
+
+    - name: Ensure the user has sudo access (optional)
+      lineinfile:
+        path: /etc/sudoers
+        line: "{{ username }} ALL=(ALL) NOPASSWD:ALL"
+        validate: 'visudo -cf %s'

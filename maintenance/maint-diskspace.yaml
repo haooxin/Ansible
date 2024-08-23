@@ -1,0 +1,17 @@
+---
+- name: Check disk space
+  hosts: "{{ my_hosts | d('all') }}"
+
+  tasks:
+    - name: Get disk usage
+      command: df -h
+      register: disk_usage
+
+    - name: Check disk space available
+      shell: df -h / | awk 'NR==2 {print $5}'
+      register: disk_usage
+
+    - name: Display disk usage warning
+      debug:
+        msg: "Disk space on {{ inventory_hostname }} is above 80%! Current usage: {{ disk_usage.stdout }}"
+      when: disk_usage.stdout[:-1] | int > 80

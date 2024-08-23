@@ -1,0 +1,7 @@
+---
+- hosts: "{{ my_hosts | d('all') }}"
+  become: yes
+  tasks:
+    - name: Set timezone to Europe/Warsaw
+      timezone:
+        name: Europe/Warsaw

@@ -1,0 +1,19 @@
+---
+- hosts: "{{ my_hosts | d('all') }}"
+
+  tasks:
+    - name: Copy docker-compose file
+      copy:
+        src: "{{ local_project_dir }}/{{ item }}"
+        dest: "{{ remote_project_dir }}/{{ item }}"
+      loop:
+        - docker-compose.yaml
+
+    - name: Deploy docker-compose project
+      community.docker.docker_compose_v2:
+        project_src: "{{ remote_project_dir }}"
+        files:
+          - docker-compose.yaml
+        state: present
+        pull: policy
+        remove_orphans: true
