@@ -9,21 +9,21 @@
   tasks:
     - name: Check if SSH key already exists
       stat:
-        path: "/home/user/Ansible/ssh_keys/id_rsa_{{ username }}"
+        path: "/home/user/Ansible/ssh_keys/id_ed25519_{{ username }}"
       register: ssh_key
 
     - name: Generate SSH key pair
-      command: ssh-keygen -t rsa -b 2048 -f /home/user/Ansible/ssh_keys/id_rsa_{{ username }} -q -N ""
+      command: ssh-keygen -t ed25519 -f /home/user/Ansible/ssh_keys/id_ed25519_{{ username }} -q -N ""
       when: not ssh_key.stat.exists
 
     - name: Read the private key
       slurp:
-        src: "/home/user/Ansible/ssh_keys/id_rsa_{{ username }}"
+        src: "/home/user/Ansible/ssh_keys/id_ed25519_{{ username }}"
       register: private_key
 
     - name: Read the public key
       slurp:
-        src: "/home/user/Ansible/ssh_keys/id_rsa_{{ username }}.pub"
+        src: "/home/user/Ansible/ssh_keys/id_ed25519_{{ username }}.pub"
       register: public_key
 
     - name: Set username as a fact
@@ -45,7 +45,7 @@
     username: "{{ hostvars['localhost']['global_username'] }}"
     ssh_private_key: "{{ hostvars['localhost']['ssh_private_key'] }}"
     ssh_public_key: "{{ hostvars['localhost']['ssh_public_key'] }}"
-    ssh_key_file: "/home/{{ username }}/.ssh/id_rsa_{{ username }}"
+    ssh_key_file: "/home/{{ username }}/.ssh/id_ed25519_{{ username }}"
 
   tasks:
     - name: Ensure the user exists
